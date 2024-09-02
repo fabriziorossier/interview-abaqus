@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib import admin
-from .views import home, upload_file, portfolio_view, prices_view, graphics_view, ValoresView, DataAPIView
+from .views import home, upload_file, portfolio_view, prices_view, graphics_view, DataAPIView
 
 urlpatterns = [
     path('', home, name='home'),

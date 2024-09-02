@@ -7,7 +7,6 @@ from .truncate import truncate_tables
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 import pandas as pd
 import plotly.express as px
 from decimal import Decimal, ROUND_HALF_UP
@@ -71,10 +70,6 @@ def upload_file(request):
     loading_completed = request.GET.get('completed') == 'true'
 
     return render(request, 'upload.html', {'form': form, 'loading_completed': loading_completed})
-
-def normalize_activo_name(activo_name):
-    # Convertir a minúsculas y reemplazar caracteres especiales con guiones bajos
-    return activo_name.lower().replace('+', '_').replace('/', '_').replace(' ', '_').replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
 
 def portfolio_view(request):
     portafolio_options = ['portafolio_1', 'portafolio_2']
@@ -152,56 +147,82 @@ def prices_view(request):
 
     return render(request, 'prices.html', context)
 
-class ValoresView(APIView):
-    def get(self, request):
-        fecha_inicio = request.query_params.get('fecha_inicio')
-        fecha_fin = request.query_params.get('fecha_fin')
+def graphics_view(request):
+    # Obtener parámetros de la solicitud
+    fecha_inicio = request.GET.get('fecha_inicio', '2022-02-15')
+    fecha_fin = request.GET.get('fecha_fin', '2022-02-16')
+    selected_portafolio = request.GET.get('portafolio', 'portafolio_1') 
 
-        if not fecha_inicio or not fecha_fin:
-            return Response({"error": "Debe proporcionar fecha_inicio y fecha_fin"}, status=status.HTTP_400_BAD_REQUEST)
+    # Verificar si las fechas están presentes
+    if not fecha_inicio or not fecha_fin:
+        return render(request, 'graphics.html', {"error": "Must provide Start and End Dates"})
 
-        # Filtrar los precios en el rango de fechas proporcionado
-        precios = Precio.objects.filter(dates__range=[fecha_inicio, fecha_fin])
-        cantidades = Weight.objects.all()
+    # Definir las opciones de portafolio
+    portafolio_options = ['portafolio_1', 'portafolio_2']  # Asegúrate de que esta lista esté definida
 
-        resultados = []
+    # Lógica para calcular los datos y gráficos
+    V0 = Decimal(1000000000)  # 1 billón de dólares
+    precios = Precio.objects.filter(dates__range=[fecha_inicio, fecha_fin])
+    cantidades = Weight.objects.all()
 
-        for fecha in precios.values('dates').distinct():
-            fecha_actual = fecha['dates']
-            v_t = 0
-            valores = []
+    # Calcular o cargar las cantidades iniciales
+    cantidades_iniciales = calcular_cantidad_iniciales(selected_portafolio)
 
-            # Calcular x_{i,t} para cada activo en la fecha actual
-            for cantidad in cantidades:
-                # Asumimos que el campo 'activos' en 'Weight' se corresponde con una de las regiones en 'Precio'
-                precio_actual = precios.filter(dates=fecha_actual).first()
-                if precio_actual:
-                    # Obtener el precio correspondiente al activo
-                    precio_activo = getattr(precio_actual, cantidad.activos.lower(), None)
-                    if precio_activo is not None:
-                        x_it = precio_activo * cantidad.portafolio_1  # Supongo que 'portafolio_1' es c_{i,0}
-                        v_t += x_it
-                        valores.append({
-                            "activo": cantidad.activos,
-                            "x_it": x_it,
-                            "precio": precio_activo,
-                            "cantidad_inicial": cantidad.portafolio_1
-                        })
+    data = []
+    for fecha in precios.values('dates').distinct():
+        fecha_actual = fecha['dates']
+        v_t = 0
+        w_vals = {}
+        
+        for cantidad in cantidades:
+            activo_name = normalize_activo_name(cantidad.activos)
+            precio_actual = precios.filter(dates=fecha_actual).first()
+            
+            if precio_actual:
+                precio_activo = getattr(precio_actual, activo_name, None)
+                c_i_0 = cantidades_iniciales.get(cantidad.activos, None)
+                
+                if c_i_0 is not None and precio_activo is not None:
+                    x_it = precio_activo * c_i_0
+                    v_t += x_it
+                    w_vals[cantidad.activos] = x_it
+                else:
+                    if c_i_0 is None:
+                        print(f"Initial quantity not found for asset: {cantidad.activos}")
+                    if precio_activo is None:
+                        print(f"Price not found for asset: {cantidad.activos} on date {fecha_actual}")
 
-            # Calcular w_{i,t} y preparar el resultado
-            for valor in valores:
-                w_it = valor['x_it'] / v_t
-                valor.update({
-                    "w_it": w_it
-                })
+        if v_t > 0:
+            for activo, x_it in w_vals.items():
+                w_vals[activo] = x_it / v_t
+        
+        data.append({
+            "fecha": fecha_actual,
+            "V_t": v_t,
+            **w_vals,
+        })
 
-            resultados.append({
-                "fecha": fecha_actual,
-                "V_t": v_t,
-                "valores": valores,
-            })
+    # Crear gráficos utilizando Plotly
+    df = pd.DataFrame(data)
+    fig_w = px.area(df, x='fecha', y=[col for col in df.columns if col not in ['fecha', 'V_t']], title='Evolution of w_{i,t}')
+    fig_v = px.line(df, x='fecha', y='V_t', title='Evolution of V_t')
 
-        return Response(resultados, status=status.HTTP_200_OK)
+    graph_w_html = fig_w.to_html(full_html=False)
+    graph_v_html = fig_v.to_html(full_html=False)
+
+    # Pasar todas las variables al contexto del template
+    return render(request, 'graphics.html', {
+        "graph_w": graph_w_html,
+        "graph_v": graph_v_html,
+        "fecha_inicio": fecha_inicio,
+        "fecha_fin": fecha_fin,
+        "selected_portafolio": selected_portafolio,
+        "portafolio_options": portafolio_options
+    })
+
+def normalize_activo_name(activo_name):
+    # Convertir a minúsculas y reemplazar caracteres especiales con guiones bajos
+    return activo_name.lower().replace('+', '_').replace('/', '_').replace(' ', '_').replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
 
 def calcular_cantidad_iniciales(selected_portafolio):
     V0 = Decimal(1000000000)  # 1 billón de dólares
@@ -275,76 +296,3 @@ class DataAPIView(APIView):
             })
 
         return Response(data)
-
-def graphics_view(request):
-    # Obtener parámetros de la solicitud
-    fecha_inicio = request.GET.get('fecha_inicio', '2022-02-15')
-    fecha_fin = request.GET.get('fecha_fin', '2022-02-16')
-    selected_portafolio = request.GET.get('portafolio', 'portafolio_1') 
-
-    # Verificar si las fechas están presentes
-    if not fecha_inicio or not fecha_fin:
-        return render(request, 'graphics.html', {"error": "Must provide Start and End Dates"})
-
-    # Definir las opciones de portafolio
-    portafolio_options = ['portafolio_1', 'portafolio_2']  # Asegúrate de que esta lista esté definida
-
-    # Lógica para calcular los datos y gráficos
-    V0 = Decimal(1000000000)  # 1 billón de dólares
-    precios = Precio.objects.filter(dates__range=[fecha_inicio, fecha_fin])
-    cantidades = Weight.objects.all()
-
-    # Calcular o cargar las cantidades iniciales
-    cantidades_iniciales = calcular_cantidad_iniciales(selected_portafolio)
-
-    data = []
-    for fecha in precios.values('dates').distinct():
-        fecha_actual = fecha['dates']
-        v_t = 0
-        w_vals = {}
-        
-        for cantidad in cantidades:
-            activo_name = normalize_activo_name(cantidad.activos)
-            precio_actual = precios.filter(dates=fecha_actual).first()
-            
-            if precio_actual:
-                precio_activo = getattr(precio_actual, activo_name, None)
-                c_i_0 = cantidades_iniciales.get(cantidad.activos, None)
-                
-                if c_i_0 is not None and precio_activo is not None:
-                    x_it = precio_activo * c_i_0
-                    v_t += x_it
-                    w_vals[cantidad.activos] = x_it
-                else:
-                    if c_i_0 is None:
-                        print(f"Initial quantity not found for asset: {cantidad.activos}")
-                    if precio_activo is None:
-                        print(f"Price not found for asset: {cantidad.activos} on date {fecha_actual}")
-
-        if v_t > 0:
-            for activo, x_it in w_vals.items():
-                w_vals[activo] = x_it / v_t
-        
-        data.append({
-            "fecha": fecha_actual,
-            "V_t": v_t,
-            **w_vals,
-        })
-
-    # Crear gráficos utilizando Plotly
-    df = pd.DataFrame(data)
-    fig_w = px.area(df, x='fecha', y=[col for col in df.columns if col not in ['fecha', 'V_t']], title='Evolution of w_{i,t}')
-    fig_v = px.line(df, x='fecha', y='V_t', title='Evolution of V_t')
-
-    graph_w_html = fig_w.to_html(full_html=False)
-    graph_v_html = fig_v.to_html(full_html=False)
-
-    # Pasar todas las variables al contexto del template
-    return render(request, 'graphics.html', {
-        "graph_w": graph_w_html,
-        "graph_v": graph_v_html,
-        "fecha_inicio": fecha_inicio,
-        "fecha_fin": fecha_fin,
-        "selected_portafolio": selected_portafolio,
-        "portafolio_options": portafolio_options
-    })
