@@ -87,7 +87,7 @@ def portfolio_view(request):
 
         for peso in pesos:
             # Asset Name Normalize
-            activo_name = normalize_activo_name(peso.activos)
+            activo_name = normalize_asset_name(peso.activos)
             
             # Obtain asset price from 2022-02-15
             precio_activo = getattr(precios_15_feb, activo_name, None)
@@ -166,7 +166,7 @@ def graphics_view(request):
     cantidades = Weight.objects.all()
 
     # Calculate initial quantities
-    cantidades_iniciales = calcular_cantidad_iniciales(selected_portafolio)
+    cantidades_iniciales = calculate_initial_quantities(selected_portafolio)
 
     data = []
     for fecha in precios.values('dates').distinct():
@@ -175,7 +175,7 @@ def graphics_view(request):
         w_vals = {}
         
         for cantidad in cantidades:
-            activo_name = normalize_activo_name(cantidad.activos)
+            activo_name = normalize_asset_name(cantidad.activos)
             precio_actual = precios.filter(dates=fecha_actual).first()
             
             if precio_actual:
@@ -220,11 +220,11 @@ def graphics_view(request):
         "portafolio_options": portafolio_options
     })
 
-def normalize_activo_name(activo_name):
+def normalize_asset_name(asset_name):
     # Lowercase and replace special characters
-    return activo_name.lower().replace('+', '_').replace('/', '_').replace(' ', '_').replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
+    return asset_name.lower().replace('+', '_').replace('/', '_').replace(' ', '_').replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
 
-def calcular_cantidad_iniciales(selected_portafolio):
+def calculate_initial_quantities(selected_portafolio):
     V0 = Decimal(1000000000)
     cantidades_iniciales = {}
 
@@ -232,7 +232,7 @@ def calcular_cantidad_iniciales(selected_portafolio):
     pesos = Weight.objects.all()
 
     for peso in pesos:
-        activo_name = normalize_activo_name(peso.activos)
+        activo_name = normalize_asset_name(peso.activos)
         precio_activo = getattr(precios_15_feb, activo_name, None)
 
         if precio_activo:
@@ -263,7 +263,7 @@ class DataAPIView(APIView):
         precios = Precio.objects.filter(dates__range=[fecha_inicio, fecha_fin])
         cantidades = Weight.objects.all()
 
-        cantidades_iniciales = calcular_cantidad_iniciales(selected_portafolio)
+        cantidades_iniciales = calculate_initial_quantities(selected_portafolio)
 
         data = []
         for fecha in precios.values('dates').distinct():
@@ -272,7 +272,7 @@ class DataAPIView(APIView):
             w_vals = {}
             
             for cantidad in cantidades:
-                activo_name = normalize_activo_name(cantidad.activos)
+                activo_name = normalize_asset_name(cantidad.activos)
                 precio_actual = precios.filter(dates=fecha_actual).first()
                 
                 if precio_actual:
