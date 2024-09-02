@@ -6,48 +6,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portafolio Data</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Select Portafolio</h1>
-    <form method="get" action="{% url 'portafolio' %}">
-        <label for="portafolio">Choose a portafolio:</label>
-        <select name="portafolio" id="portafolio">
-            <option value="">--Select Portafolio--</option>
-            {% for portafolio in portafolio_options %}
-                <option value="{{ portafolio }}" {% if portafolio == selected_portafolio %}selected{% endif %}>
-                    {{ portafolio|capfirst }}
-                </option>
-            {% endfor %}
-        </select>
-        <button type="submit">Show Data</button>
-    </form>
+<body class="bg-gray-100">
+    <div class="bg-white shadow-md rounded-lg p-8 max-w-3xl w-full text-center mx-auto mt-8 min-h-screen">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Select Portafolio</h1>
+        <form method="get" action="{% url 'portafolio' %}" class="mb-6">
+            <div class="mb-4">
+                <label for="portafolio" class="block text-lg font-medium text-gray-700 mb-2">Choose a portafolio:</label>
+                <select name="portafolio" id="portafolio" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">--Select Portafolio--</option>
+                    {% for portafolio in portafolio_options %}
+                        <option value="{{ portafolio }}" {% if portafolio == selected_portafolio %}selected{% endif %}>
+                            {{ portafolio|capfirst }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                Show Data
+            </button>
+        </form>
 
-    {% if selected_portafolio %}
-        <h2>Showing data for {{ selected_portafolio|capfirst }}</h2>
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Activos</th>
-                    <th>{{ selected_portafolio|capfirst }}</th>
-                    <th>Calculated Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in data %}
-                    <tr>
-                        <td>{{ item.fecha }}</td>
-                        <td>{{ item.activos }}</td>
-                        <td>{{ item.portafolio }}</td>
-                        <td>{{ item.calculated_value|number_format }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>Please select a portafolio to view the data.</p>
-    {% endif %}
+        {% if selected_portafolio %}
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Showing data for {{ selected_portafolio|capfirst }}</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Fecha</th>
+                            <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Activo</th>
+                            <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">{{ selected_portafolio|capfirst }}</th>
+                            <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Calculated Value</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in data %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.fecha }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.activos }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.portafolio }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.calculated_value|number_format }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-lg text-gray-600">Please select a portafolio to view the data.</p>
+        {% endif %}
 
-    <a href="{% url 'home' %}">Back to Home</a>
+        <a href="{% url 'home' %}" class="block mt-6 text-blue-500 hover:underline">
+            Back to Home
+        </a>
+    </div>
 </body>
 </html>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload Excel File</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         /* Modal styles */
         .modal {
@@ -43,14 +44,22 @@
         }
     </style>
 </head>
-<body>
-    <h1>Upload Excel File</h1>
-    <form method="post" enctype="multipart/form-data" onsubmit="showModal()">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Upload</button>
-    </form>
-    <a href="{% url 'home' %}">Back to Home</a>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white shadow-md rounded-lg p-8 max-w-md w-full text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Upload Excel File</h1>
+        <form method="post" enctype="multipart/form-data" onsubmit="showModal()">
+            {% csrf_token %}
+            <div class="mb-4">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                Upload
+            </button>
+        </form>
+        <a href="{% url 'home' %}" class="block mt-4 text-blue-500 hover:underline">
+            Back to Home
+        </a>
+    </div>
 
     <!-- Modal during upload -->
     <div id="uploadModal" class="modal">
@@ -64,8 +73,10 @@
     {% if loading_completed %}
         <div id="completionModal" class="modal" style="display:block;">
             <div class="modal-content">
-                <p>Loading Completed</p>
-                <a href="{% url 'home' %}"><button>Return to Home</button></a>
+                <p class="text-lg font-semibold">Loading Completed</p>
+                <a href="{% url 'home' %}" class="inline-block mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                    Return to Home
+                </a>
             </div>
         </div>
     {% endif %}

@@ -2,12 +2,12 @@ from django.db import models
 
 class Weight(models.Model):
     fecha = models.DateField()
-    activo = models.CharField(max_length=255)
+    activos = models.CharField(max_length=255)
     portafolio_1 = models.DecimalField(max_digits=10, decimal_places=3)
     portafolio_2 = models.DecimalField(max_digits=10, decimal_places=3)
 
     def __str__(self):
-        return f"{self.fecha} - {self.activo}"
+        return f"{self.fecha} - {self.activos}"
 
 class Precio(models.Model):
     dates = models.DateField()

@@ -4,17 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Welcome to the Home Page</h1>
-    <a href="{% url 'upload' %}">
-        <button>Go to Upload Page</button>
-    </a>
-    <a href="{% url 'portafolio' %}">
-        <button>Go to Portafolio Page</button>
-    </a>
-    <a href="{% url 'precios' %}">
-        <button>Go to Precios Page</button>
-    </a>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white shadow-md rounded-lg p-8 max-w-lg text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Welcome to the Home Page</h1>
+        <div class="space-y-4">
+            <a href="{% url 'upload' %}">
+                <button class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    Go to Upload Page
+                </button>
+            </a>
+            <a href="{% url 'portafolio' %}">
+                <button class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                    Go to Portafolio Page
+                </button>
+            </a>
+            <a href="{% url 'precios' %}">
+                <button class="w-full bg-purple-500 text-white font-bold py-2 px-4 rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">
+                    Go to Precios Page
+                </button>
+            </a>
+        </div>
+    </div>
 </body>
 </html>

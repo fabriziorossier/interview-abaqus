@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('fecha', models.DateField()),
-                ('activo', models.CharField(max_length=255)),
+                ('activos', models.CharField(max_length=255)),
                 ('portafolio_1', models.DecimalField(max_digits=10, decimal_places=3)),
                 ('portafolio_2', models.DecimalField(max_digits=10, decimal_places=3)),
             ],

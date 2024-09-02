@@ -27,7 +27,7 @@ def upload_file(request):
                 for _, row in weights_df.iterrows():
                     Weight.objects.create(
                         fecha=row['Fecha'],
-                        activo=row['activos'],
+                        activos=row['activos'],
                         portafolio_1=row['portafolio 1'],
                         portafolio_2=row['portafolio 2'],
                     )
@@ -80,7 +80,7 @@ def portafolio_view(request):
             calculated_value = starting_value * portafolio_percentage
             data.append({
                 'fecha': item.fecha,
-                'activo': item.activo,
+                'activos': item.activos,
                 'portafolio': portafolio_percentage,
                 'calculated_value': calculated_value,
             })

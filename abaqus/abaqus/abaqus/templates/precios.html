@@ -4,88 +4,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Precios Table</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Precios Table</h1>
+<body class="bg-gray-100">
+    <div class="bg-white shadow-md rounded-lg p-8 max-w-5xl w-full text-center mx-auto mt-8 min-h-screen">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Precios Table</h1>
 
-    <!-- Dropdown to select the number of items per page -->
-    <form method="get" action="{% url 'precios' %}">
-        <label for="items_per_page">Items per page:</label>
-        <select name="items_per_page" id="items_per_page" onchange="this.form.submit()">
-            <option value="10" {% if items_per_page == '10' %}selected{% endif %}>10</option>
-            <option value="20" {% if items_per_page == '20' %}selected{% endif %}>20</option>
-            <option value="50" {% if items_per_page == '50' %}selected{% endif %}>50</option>
-        </select>
-    </form>
+        <!-- Dropdown to select the number of items per page -->
+        <form method="get" action="{% url 'precios' %}" class="mb-6 text-left">
+            <label for="items_per_page" class="block text-lg font-medium text-gray-700 mb-2">Items per page:</label>
+            <select name="items_per_page" id="items_per_page" onchange="this.form.submit()" class="w-32 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="10" {% if items_per_page == '10' %}selected{% endif %}>10</option>
+                <option value="20" {% if items_per_page == '20' %}selected{% endif %}>20</option>
+                <option value="50" {% if items_per_page == '50' %}selected{% endif %}>50</option>
+            </select>
+        </form>
 
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Dates</th>
-                <th>EEUU</th>
-                <th>Europa</th>
-                <th>Japón</th>
-                <th>EM Asia</th>
-                <th>Latam</th>
-                <th>High Yield</th>
-                <th>IG Corporate</th>
-                <th>EMHC</th>
-                <th>Latam HY</th>
-                <th>UK</th>
-                <th>Asia Desarrollada</th>
-                <th>EMEA</th>
-                <th>Otros RV</th>
-                <th>Tesoro</th>
-                <th>MBS+CMBS+AMBS</th>
-                <th>ABS</th>
-                <th>MM/Caja</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in precios %}
-            <tr>
-                <td>{{ item.dates }}</td>
-                <td>{{ item.eeuu }}</td>
-                <td>{{ item.europa }}</td>
-                <td>{{ item.japon }}</td>
-                <td>{{ item.em_asia }}</td>
-                <td>{{ item.latam }}</td>
-                <td>{{ item.high_yield }}</td>
-                <td>{{ item.ig_corporate }}</td>
-                <td>{{ item.emhc }}</td>
-                <td>{{ item.latam_hy }}</td>
-                <td>{{ item.uk }}</td>
-                <td>{{ item.asia_desarrollada }}</td>
-                <td>{{ item.emea }}</td>
-                <td>{{ item.otros_rv }}</td>
-                <td>{{ item.tesoro }}</td>
-                <td>{{ item.mbs_cmbs_ambs }}</td>
-                <td>{{ item.abs }}</td>
-                <td>{{ item.mm_caja }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Dates</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">EEUU</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Europa</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Japón</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">EM Asia</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Latam</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">High Yield</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">IG Corporate</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">EMHC</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Latam HY</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">UK</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Asia Desarrollada</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">EMEA</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Otros RV</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Tesoro</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">MBS+CMBS+AMBS</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">ABS</th>
+                        <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">MM/Caja</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for item in precios %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.dates }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.eeuu }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.europa }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.japon }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.em_asia }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.latam }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.high_yield }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.ig_corporate }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.emhc }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.latam_hy }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.uk }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.asia_desarrollada }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.emea }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.otros_rv }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.tesoro }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.mbs_cmbs_ambs }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.abs }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.mm_caja }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-    <!-- Pagination controls -->
-    <div>
-        <span class="step-links">
-            {% if precios.has_previous %}
-                <a href="?page=1&items_per_page={{ items_per_page }}">First</a>
-                <a href="?page={{ precios.previous_page_number }}&items_per_page={{ items_per_page }}">Previous</a>
-            {% endif %}
+        <!-- Pagination controls -->
+        <div class="mt-6">
+            <span class="step-links text-sm">
+                {% if precios.has_previous %}
+                    <a href="?page=1&items_per_page={{ items_per_page }}" class="text-blue-500 hover:underline">First</a>
+                    <a href="?page={{ precios.previous_page_number }}&items_per_page={{ items_per_page }}" class="text-blue-500 hover:underline">Previous</a>
+                {% endif %}
 
-            <span class="current">
-                Page {{ precios.number }} of {{ precios.paginator.num_pages }}.
+                <span class="current mx-2 text-gray-700">
+                    Page {{ precios.number }} of {{ precios.paginator.num_pages }}.
+                </span>
+
+                {% if precios.has_next %}
+                    <a href="?page={{ precios.next_page_number }}&items_per_page={{ items_per_page }}" class="text-blue-500 hover:underline">Next</a>
+                    <a href="?page={{ precios.paginator.num_pages }}&items_per_page={{ items_per_page }}" class="text-blue-500 hover:underline">Last</a>
+                {% endif %}
             </span>
+        </div>
 
-            {% if precios.has_next %}
-                <a href="?page={{ precios.next_page_number }}&items_per_page={{ items_per_page }}">Next</a>
-                <a href="?page={{ precios.paginator.num_pages }}&items_per_page={{ items_per_page }}">Last</a>
-            {% endif %}
-        </span>
+        <a href="{% url 'home' %}" class="block mt-6 text-blue-500 hover:underline">
+            Back to Home
+        </a>
     </div>
-
-    <a href="{% url 'home' %}">Back to Home</a>
 </body>
 </html>
