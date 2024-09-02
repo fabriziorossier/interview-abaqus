@@ -50,7 +50,7 @@
             const end_date = document.getElementById('end_date').value;
             const portfolio = document.getElementById('portfolio').value;
     
-            fetch(`/api/grafico-data/?fecha_inicio=${start_date}&fecha_fin=${end_date}&portafolio=${portfolio}`)
+            fetch(`/api/data/?fecha_inicio=${start_date}&fecha_fin=${end_date}&portafolio=${portfolio}`)
                 .then(response => response.json())
                 .then(data => {
                     const roundToThreeDecimals = (num) => Math.round(num * 1000) / 1000;

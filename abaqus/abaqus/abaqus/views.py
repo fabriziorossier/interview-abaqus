@@ -228,15 +228,15 @@ def calcular_cantidad_iniciales(selected_portafolio):
 
     return cantidades_iniciales
 
-class GraficoDataAPIView(APIView):
+class DataAPIView(APIView):
 
     def get(self, request, format=None):
         fecha_inicio = request.GET.get('fecha_inicio', '2022-02-15')
         fecha_fin = request.GET.get('fecha_fin', '2022-02-28')
-        selected_portafolio = request.GET.get('portafolio', 'portafolio_1')  # Valor por defecto
+        selected_portafolio = request.GET.get('portafolio', 'portafolio_1')
 
         if not fecha_inicio or not fecha_fin:
-            return Response({"error": "Debe proporcionar fecha_inicio y fecha_fin"}, status=400)
+            return Response({"error": "Must provide fecha_inicio and fecha_fin"}, status=400)
 
         V0 = Decimal(1000000000)
         precios = Precio.objects.filter(dates__range=[fecha_inicio, fecha_fin])
@@ -260,23 +260,23 @@ class GraficoDataAPIView(APIView):
                     
                     if c_i_0 is not None and precio_activo is not None:
                         x_it = precio_activo * c_i_0
-                        x_it = x_it.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)  # Redondear a 3 decimales
+                        x_it = x_it.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)
                         v_t += x_it
                         w_vals[cantidad.activos] = x_it
 
             if v_t > 0:
                 for activo, x_it in w_vals.items():
-                    w_vals[activo] = (x_it / v_t).quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)  # Redondear a 3 decimales
+                    w_vals[activo] = (x_it / v_t).quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)
             
             data.append({
                 "fecha": fecha_actual,
-                "V_t": v_t.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP),  # Redondear a 3 decimales
+                "V_t": v_t.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP),
                 **w_vals,
             })
 
         return Response(data)
 
-def graficos_view(request):
+def graphics_view(request):
     # Obtener parámetros de la solicitud
     fecha_inicio = request.GET.get('fecha_inicio', '2022-02-15')
     fecha_fin = request.GET.get('fecha_fin', '2022-02-16')
@@ -284,7 +284,7 @@ def graficos_view(request):
 
     # Verificar si las fechas están presentes
     if not fecha_inicio or not fecha_fin:
-        return render(request, 'graficos.html', {"error": "Debe proporcionar fecha_inicio y fecha_fin"})
+        return render(request, 'graphics.html', {"error": "Must provide Start and End Dates"})
 
     # Definir las opciones de portafolio
     portafolio_options = ['portafolio_1', 'portafolio_2']  # Asegúrate de que esta lista esté definida
@@ -317,9 +317,9 @@ def graficos_view(request):
                     w_vals[cantidad.activos] = x_it
                 else:
                     if c_i_0 is None:
-                        print(f"Cantidad inicial no encontrada para el activo: {cantidad.activos}")
+                        print(f"Initial quantity not found for asset: {cantidad.activos}")
                     if precio_activo is None:
-                        print(f"Precio no encontrado para el activo: {cantidad.activos} en la fecha {fecha_actual}")
+                        print(f"Price not found for asset: {cantidad.activos} on date {fecha_actual}")
 
         if v_t > 0:
             for activo, x_it in w_vals.items():
@@ -333,18 +333,18 @@ def graficos_view(request):
 
     # Crear gráficos utilizando Plotly
     df = pd.DataFrame(data)
-    fig_w = px.area(df, x='fecha', y=[col for col in df.columns if col not in ['fecha', 'V_t']], title='Evolución de w_{i,t}')
-    fig_v = px.line(df, x='fecha', y='V_t', title='Evolución de V_t')
+    fig_w = px.area(df, x='fecha', y=[col for col in df.columns if col not in ['fecha', 'V_t']], title='Evolution of w_{i,t}')
+    fig_v = px.line(df, x='fecha', y='V_t', title='Evolution of V_t')
 
     graph_w_html = fig_w.to_html(full_html=False)
     graph_v_html = fig_v.to_html(full_html=False)
 
     # Pasar todas las variables al contexto del template
-    return render(request, 'graficos.html', {
+    return render(request, 'graphics.html', {
         "graph_w": graph_w_html,
         "graph_v": graph_v_html,
         "fecha_inicio": fecha_inicio,
         "fecha_fin": fecha_fin,
         "selected_portafolio": selected_portafolio,
-        "portafolio_options": portafolio_options  # Asegúrate de que esto esté aquí
+        "portafolio_options": portafolio_options
     })
