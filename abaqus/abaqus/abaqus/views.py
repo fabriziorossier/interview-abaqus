@@ -76,7 +76,7 @@ def normalize_activo_name(activo_name):
     # Convertir a minúsculas y reemplazar caracteres especiales con guiones bajos
     return activo_name.lower().replace('+', '_').replace('/', '_').replace(' ', '_').replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
 
-def cantidades_iniciales_view(request):
+def portfolio_view(request):
     portafolio_options = ['portafolio_1', 'portafolio_2']
     selected_portafolio = request.GET.get('portafolio')
     V0 = Decimal(1000000000)  # 1 billón de dólares
@@ -123,7 +123,7 @@ def cantidades_iniciales_view(request):
         'cantidades_iniciales': cantidades_iniciales,
     }
 
-    return render(request, 'cantidades_iniciales.html', context)
+    return render(request, 'portfolio.html', context)
 
 def precios_view(request):
     # Fetch all records from the Precios table
