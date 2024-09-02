@@ -1,20 +1,16 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect
-from .forms import UploadFileForm
 from .models import Weight, Precio
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Sum, F, FloatField
+from .forms import UploadFileForm
 from .truncate import truncate_tables
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import pandas as pd
-import matplotlib.pyplot as plt
-import io
-import urllib, base64
 import plotly.express as px
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 def home(request):
     return render(request, 'home.html')
@@ -223,6 +219,7 @@ def calcular_cantidad_iniciales(selected_portafolio):
             portafolio_weight = getattr(peso, selected_portafolio, None)
             if portafolio_weight:
                 cantidad_inicial = (portafolio_weight * V0) / precio_activo
+                cantidad_inicial = cantidad_inicial.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)  # Redondear a 3 decimales
                 cantidades_iniciales[peso.activos] = cantidad_inicial
             else:
                 print(f"Peso no encontrado para el activo: {peso.activos} en el portafolio {selected_portafolio}")
@@ -231,11 +228,59 @@ def calcular_cantidad_iniciales(selected_portafolio):
 
     return cantidades_iniciales
 
+class GraficoDataAPIView(APIView):
+
+    def get(self, request, format=None):
+        fecha_inicio = request.GET.get('fecha_inicio', '2022-02-15')
+        fecha_fin = request.GET.get('fecha_fin', '2022-02-28')
+        selected_portafolio = request.GET.get('portafolio', 'portafolio_1')  # Valor por defecto
+
+        if not fecha_inicio or not fecha_fin:
+            return Response({"error": "Debe proporcionar fecha_inicio y fecha_fin"}, status=400)
+
+        V0 = Decimal(1000000000)
+        precios = Precio.objects.filter(dates__range=[fecha_inicio, fecha_fin])
+        cantidades = Weight.objects.all()
+
+        cantidades_iniciales = calcular_cantidad_iniciales(selected_portafolio)
+
+        data = []
+        for fecha in precios.values('dates').distinct():
+            fecha_actual = fecha['dates']
+            v_t = Decimal(0)
+            w_vals = {}
+            
+            for cantidad in cantidades:
+                activo_name = normalize_activo_name(cantidad.activos)
+                precio_actual = precios.filter(dates=fecha_actual).first()
+                
+                if precio_actual:
+                    precio_activo = getattr(precio_actual, activo_name, None)
+                    c_i_0 = cantidades_iniciales.get(cantidad.activos, None)
+                    
+                    if c_i_0 is not None and precio_activo is not None:
+                        x_it = precio_activo * c_i_0
+                        x_it = x_it.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)  # Redondear a 3 decimales
+                        v_t += x_it
+                        w_vals[cantidad.activos] = x_it
+
+            if v_t > 0:
+                for activo, x_it in w_vals.items():
+                    w_vals[activo] = (x_it / v_t).quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)  # Redondear a 3 decimales
+            
+            data.append({
+                "fecha": fecha_actual,
+                "V_t": v_t.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP),  # Redondear a 3 decimales
+                **w_vals,
+            })
+
+        return Response(data)
+
 def graficos_view(request):
     # Obtener parámetros de la solicitud
     fecha_inicio = request.GET.get('fecha_inicio', '2022-02-15')
     fecha_fin = request.GET.get('fecha_fin', '2022-02-16')
-    selected_portafolio = request.GET.get('portafolio', 'portafolio_1')  # Valor por defecto: 'portafolio_1'
+    selected_portafolio = request.GET.get('portafolio', 'portafolio_1') 
 
     # Verificar si las fechas están presentes
     if not fecha_inicio or not fecha_fin:
@@ -293,9 +338,6 @@ def graficos_view(request):
 
     graph_w_html = fig_w.to_html(full_html=False)
     graph_v_html = fig_v.to_html(full_html=False)
-
-    print("Portafolio Options:", portafolio_options)
-    print("Selected Portafolio:", selected_portafolio)
 
     # Pasar todas las variables al contexto del template
     return render(request, 'graficos.html', {

@@ -3,63 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gráficos de Evolución</title>
+    <title>Abaqus - Evolution Graphics</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
-
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="bg-white shadow-md rounded-lg p-8 max-w-5xl w-full text-center">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Evolución de w_{i,t} y V_t</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Evolution of w_{i,t} and V_t</h1>
 
-        <p><strong>Portafolio Options:</strong> {{ portafolio_options }}</p>
-        <p><strong>Selected Portafolio:</strong> {{ selected_portafolio }}</p>
-        
-        <form method="get" action="{% url 'graficos' %}" class="mb-6">
+        <form id="grafico-form" class="mb-6">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                    <label for="fecha_inicio" class="block text-lg font-medium text-gray-700 mb-2">Fecha Inicio</label>
-                    <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}" required class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label for="start_date" class="block text-lg font-medium text-gray-700 mb-2">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" required class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="2022-02-15">
                 </div>
                 <div>
-                    <label for="fecha_fin" class="block text-lg font-medium text-gray-700 mb-2">Fecha Fin</label>
-                    <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}" required class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label for="end_date" class="block text-lg font-medium text-gray-700 mb-2">End Date</label>
+                    <input type="date" id="end_date" name="end_date" required class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="2022-02-28">
                 </div>
                 <div>
-                    <label for="portafolio" class="block text-lg font-medium text-gray-700 mb-2">Seleccione Portafolio</label>
-                    <select name="portafolio" id="portafolio" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        {% for portafolio in portafolio_options %}
-                            <option value="{{ portafolio }}" {% if portafolio == selected_portafolio %}selected{% endif %}>
-                                {{ portafolio|capfirst }}
-                            </option>
-                        {% endfor %}
+                    <label for="portfolio" class="block text-lg font-medium text-gray-700 mb-2">Portfolio</label>
+                    <select name="portfolio" id="portfolio" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="portafolio_1">Portfolio 1</option>
+                        <option value="portafolio_2">Portfolio 2</option>
                     </select>
                 </div>
             </div>
             <button type="submit" class="mt-6 w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                Mostrar Gráficos
+                Display Graphics
             </button>
         </form>
 
-        {% if error %}
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-8" role="alert">
-                <strong class="font-bold">Error:</strong>
-                <span class="block sm:inline">{{ error }}</span>
-            </div>
-        {% else %}
-            <div class="mb-12">
-                <h2 class="text-2xl font-semibold mb-4">Gráfico de w_{i,t} (Área Apilada)</h2>
-                <div>{{ graph_w|safe }}</div>
-            </div>
-
-            <div>
-                <h2 class="text-2xl font-semibold mb-4">Gráfico de V_t (Línea)</h2>
-                <div>{{ graph_v|safe }}</div>
-            </div>
-        {% endif %}
+        <div id="graph_w" class="mb-12"></div>
+        <div id="graph_v"></div>
 
         <div class="text-center mt-8">
-            <a href="{% url 'home' %}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Volver al Inicio</a>
+            <a href="{% url 'home' %}" class="bg-gray-500 text-white font-bold py-2 px-4 rounded hover:bg-gray-700">Return to Home</a>
         </div>
     </div>
+
+    <script>
+        document.getElementById('grafico-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+    
+            const start_date = document.getElementById('start_date').value;
+            const end_date = document.getElementById('end_date').value;
+            const portfolio = document.getElementById('portfolio').value;
+    
+            fetch(`/api/grafico-data/?fecha_inicio=${start_date}&fecha_fin=${end_date}&portafolio=${portfolio}`)
+                .then(response => response.json())
+                .then(data => {
+                    const roundToThreeDecimals = (num) => Math.round(num * 1000) / 1000;
+    
+                    const dates = data.map(item => item.fecha);
+                    const activos = Object.keys(data[0]).filter(key => key !== 'fecha' && key !== 'V_t');
+    
+                    const w_data = activos.map(activo => ({
+                        x: dates,
+                        y: data.map(item => roundToThreeDecimals(item[activo])),
+                        type: 'scatter',
+                        mode: 'lines',
+                        stackgroup: 'one',
+                        name: activo
+                    }));
+    
+                    const v_trace = {
+                        x: dates,
+                        y: data.map(item => roundToThreeDecimals(item.V_t)),
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'V_t'
+                    };
+    
+                    Plotly.newPlot('graph_w', w_data, { title: 'Evolution of w_{i,t}' });
+                    Plotly.newPlot('graph_v', [v_trace], { title: 'Evolution of V_t' });
+                });
+        });
+    </script>    
 </body>
 </html>
