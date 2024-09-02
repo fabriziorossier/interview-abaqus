@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-4t527^o!cp4+0865y^x@xar31c1v5&-v)m3c5-6qy7@na6c9i('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['fabriziorossier.com', 'www.fabriziorossier.com', 'localhost', '167.172.14.7', '127.0.0.1']
 
@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['fabriziorossier.com', 'www.fabriziorossier.com', 'localhost', 
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

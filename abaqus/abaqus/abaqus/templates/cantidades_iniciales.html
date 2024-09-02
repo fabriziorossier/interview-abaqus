@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cantidades Iniciales</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white shadow-md rounded-lg p-8 max-w-5xl w-full text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Cantidades Iniciales por Activo</h1>
+        
+        <form method="get" action="{% url 'cantidades-iniciales' %}" class="mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="portafolio" class="block text-lg font-medium text-gray-700 mb-2">Seleccione Portafolio</label>
+                    <select name="portafolio" id="portafolio" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="portafolio_1" {% if selected_portafolio == 'portafolio_1' %}selected{% endif %}>Portafolio 1</option>
+                        <option value="portafolio_2" {% if selected_portafolio == 'portafolio_2' %}selected{% endif %}>Portafolio 2</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="mt-6 w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                Mostrar Cantidades
+            </button>
+        </form>
+
+        {% if cantidades_iniciales %}
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Cantidades Iniciales para {{ selected_portafolio|capfirst }}</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Activo</th>
+                            <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Cantidad Inicial (C_{i,0})</th>
+                            <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Peso Decimal</th>
+                            <th class="px-6 py-3 border-b border-gray-200 text-left text-sm font-medium text-gray-500 uppercase">Valor en Dólares</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in cantidades_iniciales %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.activo }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.cantidad_inicial|floatformat:2 }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.peso_decimal|floatformat:3 }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ item.valor_en_dolares|floatformat:2 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-lg text-gray-600">Seleccione un portafolio para ver las cantidades iniciales.</p>
+        {% endif %}
+
+        <div class="text-center mt-8">
+            <a href="{% url 'home' %}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Volver al Inicio</a>
+        </div>
+    </div>
+</body>
+</html>

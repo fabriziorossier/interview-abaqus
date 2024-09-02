@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráficos de Evolución</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white shadow-md rounded-lg p-8 max-w-5xl w-full text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Evolución de w_{i,t} y V_t</h1>
+
+        <form method="get" class="mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="fecha_inicio" class="block text-lg font-medium text-gray-700">Fecha Inicio</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="fecha_fin" class="block text-lg font-medium text-gray-700">Fecha Fin</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            <button type="submit" class="mt-6 w-full bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                Mostrar Gráficos
+            </button>
+        </form>
+
+        {% if error %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-8" role="alert">
+                <strong class="font-bold">Error:</strong>
+                <span class="block sm:inline">{{ error }}</span>
+            </div>
+        {% else %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-semibold mb-4">Gráfico de w_{i,t} (Área Apilada)</h2>
+                <div>{{ graph_w|safe }}</div>
+            </div>
+
+            <div>
+                <h2 class="text-2xl font-semibold mb-4">Gráfico de V_t (Línea)</h2>
+                <div>{{ graph_v|safe }}</div>
+            </div>
+        {% endif %}
+
+        <div class="text-center mt-8">
+            <a href="{% url 'home' %}" class="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-700">Return to Home Page</a>
+        </div>
+    </div>
+</body>
+</html>
