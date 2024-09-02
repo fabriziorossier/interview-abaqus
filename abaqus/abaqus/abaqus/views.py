@@ -1,15 +1,14 @@
 from django.shortcuts import render
 from django.urls import reverse
 from django.http import HttpResponseRedirect
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from decimal import Decimal, ROUND_HALF_UP
 from .models import Weight, Precio
 from .forms import UploadFileForm
-from .truncate import truncate_tables
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import pandas as pd
 import plotly.express as px
-from decimal import Decimal, ROUND_HALF_UP
 
 def home(request):
     return render(request, 'home.html')
@@ -18,8 +17,9 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            # Truncate existing data and get status messages
-            truncate_tables()
+            # Truncate existing data
+            Weight.objects.all().delete()
+            Precio.objects.all().delete()
 
             # Process the uploaded file
             excel_file = request.FILES['file']
@@ -74,35 +74,35 @@ def upload_file(request):
 def portfolio_view(request):
     portafolio_options = ['portafolio_1', 'portafolio_2']
     selected_portafolio = request.GET.get('portafolio')
-    V0 = Decimal(1000000000)  # 1 billón de dólares
+    V0 = Decimal(1000000000)
 
     cantidades_iniciales = []
 
     if selected_portafolio in portafolio_options:
-        # Obtener los precios del 15/02/22
+        # Obtain prices from 2022-02-15
         precios_15_feb = Precio.objects.filter(dates='2022-02-15').first()
         
-        # Obtener los pesos w_{i,0} del modelo Weight
+        # Obtain weights w_{i, 0} from Weight Model
         pesos = Weight.objects.all()
 
         for peso in pesos:
-            # Normalizar el nombre del activo
+            # Asset Name Normalize
             activo_name = normalize_activo_name(peso.activos)
             
-            # Obtener el precio del activo en el 15/02/22
+            # Obtain asset price from 2022-02-15
             precio_activo = getattr(precios_15_feb, activo_name, None)
             
             if precio_activo:
-                # Obtener el peso del activo en el portafolio seleccionado
+                # Obtain asset weight from selected portfolio
                 portafolio_weight = getattr(peso, selected_portafolio)
                 
-                # Calcular C_{i,0} usando la fórmula
+                # Calculate C_{i, 0}
                 cantidad_inicial = (portafolio_weight * V0) / precio_activo
 
-                # Calcular el valor en dólares del activo en el portafolio
+                # Calculate asset USD value from selected portfolio
                 valor_en_dolares = portafolio_weight * V0
 
-                # Añadir los resultados a la lista
+                # Append results to the list
                 cantidades_iniciales.append({
                     'activo': peso.activos,
                     'cantidad_inicial': cantidad_inicial,
@@ -148,24 +148,24 @@ def prices_view(request):
     return render(request, 'prices.html', context)
 
 def graphics_view(request):
-    # Obtener parámetros de la solicitud
+    # Obtain query parameters
     fecha_inicio = request.GET.get('fecha_inicio', '2022-02-15')
     fecha_fin = request.GET.get('fecha_fin', '2022-02-16')
     selected_portafolio = request.GET.get('portafolio', 'portafolio_1') 
 
-    # Verificar si las fechas están presentes
+    # Verify if dates are present
     if not fecha_inicio or not fecha_fin:
         return render(request, 'graphics.html', {"error": "Must provide Start and End Dates"})
 
-    # Definir las opciones de portafolio
-    portafolio_options = ['portafolio_1', 'portafolio_2']  # Asegúrate de que esta lista esté definida
+    # Define portfolio options
+    portafolio_options = ['portafolio_1', 'portafolio_2']
 
-    # Lógica para calcular los datos y gráficos
-    V0 = Decimal(1000000000)  # 1 billón de dólares
+    # Calculate logic
+    V0 = Decimal(1000000000)
     precios = Precio.objects.filter(dates__range=[fecha_inicio, fecha_fin])
     cantidades = Weight.objects.all()
 
-    # Calcular o cargar las cantidades iniciales
+    # Calculate initial quantities
     cantidades_iniciales = calcular_cantidad_iniciales(selected_portafolio)
 
     data = []
@@ -202,7 +202,7 @@ def graphics_view(request):
             **w_vals,
         })
 
-    # Crear gráficos utilizando Plotly
+    # Create graphics
     df = pd.DataFrame(data)
     fig_w = px.area(df, x='fecha', y=[col for col in df.columns if col not in ['fecha', 'V_t']], title='Evolution of w_{i,t}')
     fig_v = px.line(df, x='fecha', y='V_t', title='Evolution of V_t')
@@ -210,7 +210,7 @@ def graphics_view(request):
     graph_w_html = fig_w.to_html(full_html=False)
     graph_v_html = fig_v.to_html(full_html=False)
 
-    # Pasar todas las variables al contexto del template
+    # Pass variables to template context
     return render(request, 'graphics.html', {
         "graph_w": graph_w_html,
         "graph_v": graph_v_html,
@@ -221,11 +221,11 @@ def graphics_view(request):
     })
 
 def normalize_activo_name(activo_name):
-    # Convertir a minúsculas y reemplazar caracteres especiales con guiones bajos
+    # Lowercase and replace special characters
     return activo_name.lower().replace('+', '_').replace('/', '_').replace(' ', '_').replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
 
 def calcular_cantidad_iniciales(selected_portafolio):
-    V0 = Decimal(1000000000)  # 1 billón de dólares
+    V0 = Decimal(1000000000)
     cantidades_iniciales = {}
 
     precios_15_feb = Precio.objects.filter(dates='2022-02-15').first()
@@ -236,11 +236,11 @@ def calcular_cantidad_iniciales(selected_portafolio):
         precio_activo = getattr(precios_15_feb, activo_name, None)
 
         if precio_activo:
-            # Usar el portafolio seleccionado para obtener el peso adecuado
+            # Use selected portfolio to obtain weight
             portafolio_weight = getattr(peso, selected_portafolio, None)
             if portafolio_weight:
                 cantidad_inicial = (portafolio_weight * V0) / precio_activo
-                cantidad_inicial = cantidad_inicial.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)  # Redondear a 3 decimales
+                cantidad_inicial = cantidad_inicial.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)
                 cantidades_iniciales[peso.activos] = cantidad_inicial
             else:
                 print(f"Peso no encontrado para el activo: {peso.activos} en el portafolio {selected_portafolio}")
