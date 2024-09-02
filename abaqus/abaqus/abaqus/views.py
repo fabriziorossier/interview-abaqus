@@ -207,16 +207,50 @@ class ValoresView(APIView):
 
         return Response(resultados, status=status.HTTP_200_OK)
 
-def graficos_view(request):
-    fecha_inicio = request.GET.get('fecha_inicio')
-    fecha_fin = request.GET.get('fecha_fin')
+def calcular_cantidad_iniciales(selected_portafolio):
+    V0 = Decimal(1000000000)  # 1 billón de dólares
+    cantidades_iniciales = {}
 
+    precios_15_feb = Precio.objects.filter(dates='2022-02-15').first()
+    pesos = Weight.objects.all()
+
+    for peso in pesos:
+        activo_name = normalize_activo_name(peso.activos)
+        precio_activo = getattr(precios_15_feb, activo_name, None)
+
+        if precio_activo:
+            # Usar el portafolio seleccionado para obtener el peso adecuado
+            portafolio_weight = getattr(peso, selected_portafolio, None)
+            if portafolio_weight:
+                cantidad_inicial = (portafolio_weight * V0) / precio_activo
+                cantidades_iniciales[peso.activos] = cantidad_inicial
+            else:
+                print(f"Peso no encontrado para el activo: {peso.activos} en el portafolio {selected_portafolio}")
+        else:
+            print(f"Precio no encontrado para el activo: {peso.activos} en la fecha 2022-02-15")
+
+    return cantidades_iniciales
+
+def graficos_view(request):
+    # Obtener parámetros de la solicitud
+    fecha_inicio = request.GET.get('fecha_inicio', '2022-02-15')
+    fecha_fin = request.GET.get('fecha_fin', '2022-02-16')
+    selected_portafolio = request.GET.get('portafolio', 'portafolio_1')  # Valor por defecto: 'portafolio_1'
+
+    # Verificar si las fechas están presentes
     if not fecha_inicio or not fecha_fin:
         return render(request, 'graficos.html', {"error": "Debe proporcionar fecha_inicio y fecha_fin"})
 
-    # Obtener los datos necesarios usando la API o directamente desde los modelos
+    # Definir las opciones de portafolio
+    portafolio_options = ['portafolio_1', 'portafolio_2']  # Asegúrate de que esta lista esté definida
+
+    # Lógica para calcular los datos y gráficos
+    V0 = Decimal(1000000000)  # 1 billón de dólares
     precios = Precio.objects.filter(dates__range=[fecha_inicio, fecha_fin])
     cantidades = Weight.objects.all()
+
+    # Calcular o cargar las cantidades iniciales
+    cantidades_iniciales = calcular_cantidad_iniciales(selected_portafolio)
 
     data = []
     for fecha in precios.values('dates').distinct():
@@ -225,13 +259,22 @@ def graficos_view(request):
         w_vals = {}
         
         for cantidad in cantidades:
+            activo_name = normalize_activo_name(cantidad.activos)
             precio_actual = precios.filter(dates=fecha_actual).first()
+            
             if precio_actual:
-                precio_activo = getattr(precio_actual, cantidad.activos.lower(), None)
-                if precio_activo is not None:
-                    x_it = precio_activo * cantidad.portafolio_1
+                precio_activo = getattr(precio_actual, activo_name, None)
+                c_i_0 = cantidades_iniciales.get(cantidad.activos, None)
+                
+                if c_i_0 is not None and precio_activo is not None:
+                    x_it = precio_activo * c_i_0
                     v_t += x_it
                     w_vals[cantidad.activos] = x_it
+                else:
+                    if c_i_0 is None:
+                        print(f"Cantidad inicial no encontrada para el activo: {cantidad.activos}")
+                    if precio_activo is None:
+                        print(f"Precio no encontrado para el activo: {cantidad.activos} en la fecha {fecha_actual}")
 
         if v_t > 0:
             for activo, x_it in w_vals.items():
@@ -243,23 +286,23 @@ def graficos_view(request):
             **w_vals,
         })
 
-    # Convertir la lista de diccionarios en un DataFrame de pandas
+    # Crear gráficos utilizando Plotly
     df = pd.DataFrame(data)
-
-    # Crear gráficos
-    # 1. Gráfico de área apilada para w_{i,t}
     fig_w = px.area(df, x='fecha', y=[col for col in df.columns if col not in ['fecha', 'V_t']], title='Evolución de w_{i,t}')
-    
-    # 2. Gráfico de línea para V_t
     fig_v = px.line(df, x='fecha', y='V_t', title='Evolución de V_t')
 
-    # Convertir gráficos a HTML
     graph_w_html = fig_w.to_html(full_html=False)
     graph_v_html = fig_v.to_html(full_html=False)
 
+    print("Portafolio Options:", portafolio_options)
+    print("Selected Portafolio:", selected_portafolio)
+
+    # Pasar todas las variables al contexto del template
     return render(request, 'graficos.html', {
         "graph_w": graph_w_html,
         "graph_v": graph_v_html,
         "fecha_inicio": fecha_inicio,
         "fecha_fin": fecha_fin,
+        "selected_portafolio": selected_portafolio,
+        "portafolio_options": portafolio_options  # Asegúrate de que esto esté aquí
     })
