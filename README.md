@@ -2,8 +2,11 @@
 Technical Interview Project for Abaqus SpA
 
 ## Prerequisites
-- python 3.12.3 or above
-- python3.12-venv
+- **python 3.12.3 or above:** apt install python3 && apt install python3-pip
+- **python3.12-venv:** apt install python3-venv
+- **djangorestframework-3.15.2 or above:** pip3 install djangorestframework
+- **matplotlib:** pip3 install matplotlib
+- **plotly:** pip3 install plotly
 
 ## Installation
 1. **Create virtual environment on project folder:** python -m venv .nameofvirtualenv
@@ -22,7 +25,7 @@ Technical Interview Project for Abaqus SpA
 2. **Change Database File Permissions:** sudo chmod 664 /path/to/abaqus/db.sqlite3
 3. **Change Ownership:** sudo chown linuxuser:linuxusergroup /path/to/abaqus -R
 
-## Running the server in DEBUG mode
+## Running the server
 - python3 manage.py runserver 0.0.0.0:8000
 
 # Use of this software
