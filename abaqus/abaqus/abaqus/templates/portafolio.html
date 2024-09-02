@@ -1,0 +1,53 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portafolio Data</title>
+</head>
+<body>
+    <h1>Select Portafolio</h1>
+    <form method="get" action="{% url 'portafolio' %}">
+        <label for="portafolio">Choose a portafolio:</label>
+        <select name="portafolio" id="portafolio">
+            <option value="">--Select Portafolio--</option>
+            {% for portafolio in portafolio_options %}
+                <option value="{{ portafolio }}" {% if portafolio == selected_portafolio %}selected{% endif %}>
+                    {{ portafolio|capfirst }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Show Data</button>
+    </form>
+
+    {% if selected_portafolio %}
+        <h2>Showing data for {{ selected_portafolio|capfirst }}</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Activos</th>
+                    <th>{{ selected_portafolio|capfirst }}</th>
+                    <th>Calculated Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in data %}
+                    <tr>
+                        <td>{{ item.fecha }}</td>
+                        <td>{{ item.activos }}</td>
+                        <td>{{ item.portafolio }}</td>
+                        <td>{{ item.calculated_value|number_format }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Please select a portafolio to view the data.</p>
+    {% endif %}
+
+    <a href="{% url 'home' %}">Back to Home</a>
+</body>
+</html>
