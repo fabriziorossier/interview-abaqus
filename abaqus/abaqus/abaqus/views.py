@@ -125,7 +125,7 @@ def portfolio_view(request):
 
     return render(request, 'portfolio.html', context)
 
-def precios_view(request):
+def prices_view(request):
     # Fetch all records from the Precios table
     precios_list = Precio.objects.all()
 
@@ -150,7 +150,7 @@ def precios_view(request):
         'items_per_page': items_per_page,
     }
 
-    return render(request, 'precios.html', context)
+    return render(request, 'prices.html', context)
 
 class ValoresView(APIView):
     def get(self, request):
