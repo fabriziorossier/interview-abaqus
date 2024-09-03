@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra/Venta de Activos</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white shadow-md rounded-lg p-8 max-w-md w-full">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Compra/Venta de Activos</h1>
+
+        <!-- Formulario para Venta -->
+        <form id="venta-form" class="mb-4">
+            <h2 class="text-xl font-semibold mb-4">Venta</h2>
+            <div class="mb-4">
+                <label for="venta-portafolio" class="block text-lg font-medium text-gray-700 mb-2">Portafolio</label>
+                <input type="text" id="venta-portafolio" name="portafolio" class="w-full border border-gray-300 rounded-md py-2 px-3" required>
+            </div>
+            <div class="mb-4">
+                <label for="venta-fecha" class="block text-lg font-medium text-gray-700 mb-2">Fecha Transacción</label>
+                <input type="date" id="venta-fecha" name="fecha_transaccion" class="w-full border border-gray-300 rounded-md py-2 px-3" required>
+            </div>
+            <div class="mb-4">
+                <label for="venta-activo" class="block text-lg font-medium text-gray-700 mb-2">Activo</label>
+                <input type="text" id="venta-activo" name="activo" class="w-full border border-gray-300 rounded-md py-2 px-3" required>
+            </div>
+            <div class="mb-4">
+                <label for="venta-cantidad" class="block text-lg font-medium text-gray-700 mb-2">Cantidad en USD</label>
+                <input type="number" step="0.01" id="venta-cantidad" name="cantidad_usd" class="w-full border border-gray-300 rounded-md py-2 px-3" required>
+            </div>
+            <button type="submit" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-700">Vender</button>
+        </form>
+
+        <!-- Formulario para Compra -->
+        <form id="compra-form">
+            <h2 class="text-xl font-semibold mb-4">Compra</h2>
+            <div class="mb-4">
+                <label for="compra-portafolio" class="block text-lg font-medium text-gray-700 mb-2">Portafolio</label>
+                <input type="text" id="compra-portafolio" name="portafolio" class="w-full border border-gray-300 rounded-md py-2 px-3" required>
+            </div>
+            <div class="mb-4">
+                <label for="compra-fecha" class="block text-lg font-medium text-gray-700 mb-2">Fecha Transacción</label>
+                <input type="date" id="compra-fecha" name="fecha_transaccion" class="w-full border border-gray-300 rounded-md py-2 px-3" required>
+            </div>
+            <div class="mb-4">
+                <label for="compra-activo" class="block text-lg font-medium text-gray-700 mb-2">Activo</label>
+                <input type="text" id="compra-activo" name="activo" class="w-full border border-gray-300 rounded-md py-2 px-3" required>
+            </div>
+            <div class="mb-4">
+                <label for="compra-cantidad" class="block text-lg font-medium text-gray-700 mb-2">Cantidad en USD</label>
+                <input type="number" step="0.01" id="compra-cantidad" name="cantidad_usd" class="w-full border border-gray-300 rounded-md py-2 px-3" required>
+            </div>
+            <button type="submit" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-700">Comprar</button>
+        </form>
+
+        <!-- JavaScript para manejar las solicitudes a la API -->
+        <script>
+            document.getElementById('venta-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const portafolio = document.getElementById('venta-portafolio').value;
+                const fecha_transaccion = document.getElementById('venta-fecha').value;
+                const activo = document.getElementById('venta-activo').value;
+                const cantidad_usd = document.getElementById('venta-cantidad').value;
+
+                fetch('/api/vender-activo/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        portafolio: portafolio,
+                        fecha_transaccion: fecha_transaccion,
+                        activo: activo,
+                        cantidad_usd: cantidad_usd,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        alert('Venta procesada correctamente.');
+                        // Limpiar el formulario
+                        document.getElementById('venta-form').reset();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+
+            document.getElementById('compra-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const portafolio = document.getElementById('compra-portafolio').value;
+                const fecha_transaccion = document.getElementById('compra-fecha').value;
+                const activo = document.getElementById('compra-activo').value;
+                const cantidad_usd = document.getElementById('compra-cantidad').value;
+
+                fetch('/api/comprar-activo/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        portafolio: portafolio,
+                        fecha_transaccion: fecha_transaccion,
+                        activo: activo,
+                        cantidad_usd: cantidad_usd,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        alert('Compra procesada correctamente.');
+                        // Limpiar el formulario
+                        document.getElementById('compra-form').reset();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        </script>
+    </div>
+</body>
+</html>

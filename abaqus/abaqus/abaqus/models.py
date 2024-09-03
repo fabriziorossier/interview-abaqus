@@ -32,3 +32,17 @@ class Precio(models.Model):
     def __str__(self):
         return f"{self.dates} - {self.eeuu}"
 
+class Transaccion(models.Model):
+    TIPO_TRANSACCION = [
+        ('COMPRA', 'Compra'),
+        ('VENTA', 'Venta'),
+    ]
+
+    portafolio = models.CharField(max_length=50)
+    fecha_transaccion = models.DateField()
+    activo = models.CharField(max_length=50)
+    cantidad_usd = models.DecimalField(max_digits=15, decimal_places=2)
+    tipo = models.CharField(max_length=6, choices=TIPO_TRANSACCION)
+
+    def __str__(self):
+        return f"{self.tipo} - {self.activo} - {self.cantidad_usd} USD en {self.portafolio}"
