@@ -14,11 +14,11 @@ Technical Interview Project for Abaqus SpA
 3. **Install requirements:** pip install -r requirements.txt
 
 ## Run database migrations
-1. python manage.py makemigrations
-2. python manage.py migrate
+1. python3 manage.py makemigrations
+2. python3 manage.py migrate
 
 ## Configure database
-- **Create admin user:** python manage.py createsuperuser
+- **Create admin user:** python3 manage.py createsuperuser
 
 ## Set permissions
 1. **Change Directory Permissions:** sudo chmod 755 /path/to/abaqus
