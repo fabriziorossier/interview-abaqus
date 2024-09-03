@@ -5,11 +5,10 @@ Technical Interview Project for Abaqus SpA
 - **python 3.12.3 or above:** apt install python3 && apt install python3-pip
 - **python3.12-venv:** apt install python3-venv
 - **djangorestframework-3.15.2 or above:** pip3 install djangorestframework
-- **matplotlib:** pip3 install matplotlib
 - **plotly:** pip3 install plotly
 
 ## Installation
-1. **Create virtual environment on project folder:** python -m venv .nameofvirtualenv
+1. **Create virtual environment on project folder:** python3 -m venv .nameofvirtualenv
 2. **Activate virtual environment:** source .nameofvirtualenv/bin/activate
 3. **Install requirements:** pip install -r requirements.txt
 
