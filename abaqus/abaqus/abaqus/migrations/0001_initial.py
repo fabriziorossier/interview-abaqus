@@ -44,4 +44,15 @@ class Migration(migrations.Migration):
                 ('mm_caja', models.DecimalField(max_digits=10, decimal_places=4)),
             ],
         ),
+        migrations.CreateModel(
+            name='Transaccion',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('portafolio', models.CharField(max_length=50)),
+                ('fecha_transaccion', models.DateField()),
+                ('activo', models.CharField(max_length=50)),
+                ('cantidad_usd', models.DecimalField(decimal_places=2, max_digits=15)),
+                ('tipo', models.CharField(choices=[('COMPRA', 'Compra'), ('VENTA', 'Venta')], max_length=6)),
+            ],
+        ),
     ]

@@ -207,6 +207,11 @@ def graphics_view(request):
 
     # Create graphics
     df = pd.DataFrame(data)
+
+    # Verify if the DataFrame is empty
+    if df.empty:
+        return Response({"error": "No data available to generate graphic."}, status=400)
+
     fig_w = px.area(df, x='fecha', y=[col for col in df.columns if col not in ['fecha', 'V_t']], title='Evolution of w_{i,t}')
     fig_v = px.line(df, x='fecha', y='V_t', title='Evolution of V_t')
 
